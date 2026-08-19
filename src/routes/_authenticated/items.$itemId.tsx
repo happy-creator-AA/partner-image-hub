@@ -15,7 +15,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { ProcessingBadge, StatusBadge } from "@/components/StatusBadge";
 import { IMAGE_VARIANTS, lastMonths, monthKey, monthLabel } from "@/lib/catalog";
-import { useSession } from "@/hooks/useSession";
+import { useIsAdmin, useSession } from "@/hooks/useSession";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
 
