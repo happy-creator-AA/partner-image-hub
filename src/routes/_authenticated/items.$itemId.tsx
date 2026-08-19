@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bar,
   BarChart,
@@ -9,11 +9,15 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
+import { Button } from "@/components/ui/button";
 import { ProcessingBadge, StatusBadge } from "@/components/StatusBadge";
 import { IMAGE_VARIANTS, lastMonths, monthKey, monthLabel } from "@/lib/catalog";
+import { useIsAdmin, useSession } from "@/hooks/useSession";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/items/$itemId")({
   head: () => ({
@@ -34,6 +38,9 @@ export const Route = createFileRoute("/_authenticated/items/$itemId")({
 
 function ItemDetail() {
   const { itemId } = Route.useParams();
+  const { user } = useSession();
+  const isAdmin = useIsAdmin();
+  const queryClient = useQueryClient();
 
   const item = useQuery({
     queryKey: ["item", itemId],
@@ -67,6 +74,32 @@ function ItemDetail() {
       if (error) throw error;
       return data ?? [];
     },
+  });
+
+  const retry = useMutation({
+    mutationFn: async () => {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      const res = await fetch("/api/generate-ortho", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify({ itemId }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({ error: "Unknown error" }))) as { error?: string };
+        throw new Error(body.error ?? `Generation failed (${res.status})`);
+      }
+      return (await res.json()) as { ok: true; publicUrl: string };
+    },
+    onSuccess: () => {
+      toast.success("Orthographic render regenerated.");
+      queryClient.invalidateQueries({ queryKey: ["item", itemId] });
+      queryClient.invalidateQueries({ queryKey: ["item-images", itemId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const months = lastMonths(6);
@@ -132,6 +165,33 @@ function ItemDetail() {
             <ProcessingBadge status={data.processing} />
           </div>
         </div>
+
+        {data.processing === "failed" && (
+          <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm">
+            <p className="font-medium text-destructive">Render not ready</p>
+            <p className="mt-1 text-muted-foreground">
+              The orthographic view could not be generated. Click below to retry.
+            </p>
+            {(user?.id === data.partner_id || isAdmin) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={() => retry.mutate()}
+                disabled={retry.isPending}
+              >
+                {retry.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    Generating…
+                  </>
+                ) : (
+                  "Retry generation"
+                )}
+              </Button>
+            )}
+          </div>
+        )}
 
         {data.admin_note ? (
           <div className="mt-6 rounded-lg border border-border bg-secondary p-4 text-sm">

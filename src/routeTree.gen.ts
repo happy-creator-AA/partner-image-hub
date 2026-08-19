@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedUploadRouteImport } from './routes/_authenticated/upload'
+import { Route as ApiGenerateOrthoRouteImport } from './routes/api/generate-ortho'
 import { Route as AuthenticatedItemsItemIdRouteImport } from './routes/_authenticated/items.$itemId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -46,6 +47,11 @@ const AuthenticatedUploadRoute = AuthenticatedUploadRouteImport.update({
   path: '/upload',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiGenerateOrthoRoute = ApiGenerateOrthoRouteImport.update({
+  id: '/api/generate-ortho',
+  path: '/api/generate-ortho',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedItemsItemIdRoute =
   AuthenticatedItemsItemIdRouteImport.update({
     id: '/items/$itemId',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/upload': typeof AuthenticatedUploadRoute
+  '/api/generate-ortho': typeof ApiGenerateOrthoRoute
   '/items/$itemId': typeof AuthenticatedItemsItemIdRoute
 }
 export interface FileRoutesByTo {
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/upload': typeof AuthenticatedUploadRoute
+  '/api/generate-ortho': typeof ApiGenerateOrthoRoute
   '/items/$itemId': typeof AuthenticatedItemsItemIdRoute
 }
 export interface FileRoutesById {
@@ -77,14 +85,28 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/upload': typeof AuthenticatedUploadRoute
+  '/api/generate-ortho': typeof ApiGenerateOrthoRoute
   '/_authenticated/items/$itemId': typeof AuthenticatedItemsItemIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/admin' | '/dashboard' | '/upload' | '/items/$itemId'
+    | '/'
+    | '/auth'
+    | '/admin'
+    | '/dashboard'
+    | '/upload'
+    | '/api/generate-ortho'
+    | '/items/$itemId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/admin' | '/dashboard' | '/upload' | '/items/$itemId'
+  to:
+    | '/'
+    | '/auth'
+    | '/admin'
+    | '/dashboard'
+    | '/upload'
+    | '/api/generate-ortho'
+    | '/items/$itemId'
   id:
     | '__root__'
     | '/'
@@ -93,6 +115,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/upload'
+    | '/api/generate-ortho'
     | '/_authenticated/items/$itemId'
   fileRoutesById: FileRoutesById
 }
@@ -100,6 +123,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiGenerateOrthoRoute: typeof ApiGenerateOrthoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -146,6 +170,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUploadRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/generate-ortho': {
+      id: '/api/generate-ortho'
+      path: '/api/generate-ortho'
+      fullPath: '/api/generate-ortho'
+      preLoaderRoute: typeof ApiGenerateOrthoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/items/$itemId': {
       id: '/_authenticated/items/$itemId'
       path: '/items/$itemId'
@@ -177,6 +208,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiGenerateOrthoRoute: ApiGenerateOrthoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

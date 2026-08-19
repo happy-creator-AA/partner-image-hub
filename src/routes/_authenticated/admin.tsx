@@ -55,6 +55,7 @@ function AdminPage() {
 
   const review = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: "approved" | "rejected" }) => {
+      // Save the review decision first.
       const { error } = await supabase
         .from("items")
         .update({
@@ -64,6 +65,24 @@ function AdminPage() {
         })
         .eq("id", id);
       if (error) throw error;
+
+      if (status === "approved") {
+        // Kick off the orthographic/top-view generation in the background.
+        const session = await supabase.auth.getSession();
+        const token = session.data.session?.access_token;
+        const res = await fetch("/api/generate-ortho", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+          body: JSON.stringify({ itemId: id }),
+        });
+        if (!res.ok) {
+          const body = (await res.json().catch(() => ({ error: "Unknown error" }))) as { error?: string };
+          throw new Error(body.error ?? `Generation failed (${res.status})`);
+        }
+      }
     },
     onSuccess: () => {
       toast.success("Review saved.");

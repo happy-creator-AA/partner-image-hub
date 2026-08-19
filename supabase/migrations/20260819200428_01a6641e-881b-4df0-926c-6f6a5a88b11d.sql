@@ -1,0 +1,1 @@
+ALTER TABLE public.item_images ADD COLUMN IF NOT EXISTS ai_metadata JSONB NULL;
