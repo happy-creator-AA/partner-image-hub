@@ -38,6 +38,8 @@ export const Route = createFileRoute("/_authenticated/items/$itemId")({
 
 function ItemDetail() {
   const { itemId } = Route.useParams();
+  const { user } = useSession();
+  const queryClient = useQueryClient();
 
   const item = useQuery({
     queryKey: ["item", itemId],
@@ -71,6 +73,32 @@ function ItemDetail() {
       if (error) throw error;
       return data ?? [];
     },
+  });
+
+  const retry = useMutation({
+    mutationFn: async () => {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      const res = await fetch("/api/generate-ortho", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify({ itemId }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({ error: "Unknown error" }))) as { error?: string };
+        throw new Error(body.error ?? `Generation failed (${res.status})`);
+      }
+      return (await res.json()) as { ok: true; publicUrl: string };
+    },
+    onSuccess: () => {
+      toast.success("Orthographic render regenerated.");
+      queryClient.invalidateQueries({ queryKey: ["item", itemId] });
+      queryClient.invalidateQueries({ queryKey: ["item-images", itemId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const months = lastMonths(6);
