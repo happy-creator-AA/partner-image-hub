@@ -45,6 +45,7 @@ export type Database = {
       }
       item_images: {
         Row: {
+          ai_metadata: Json | null
           content_type: string | null
           created_at: string
           file_name: string | null
@@ -60,6 +61,7 @@ export type Database = {
           width: number | null
         }
         Insert: {
+          ai_metadata?: Json | null
           content_type?: string | null
           created_at?: string
           file_name?: string | null
@@ -75,6 +77,7 @@ export type Database = {
           width?: number | null
         }
         Update: {
+          ai_metadata?: Json | null
           content_type?: string | null
           created_at?: string
           file_name?: string | null
