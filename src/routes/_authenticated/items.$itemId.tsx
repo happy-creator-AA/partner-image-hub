@@ -178,7 +178,7 @@ function ItemDetail() {
                 size="sm"
                 className="mt-3"
                 onClick={() => retry.mutate()}
-                disabled={retry.isPending || data.processing === "processing"}
+                disabled={retry.isPending}
               >
                 {retry.isPending ? (
                   <>
