@@ -1,25 +1,34 @@
-# Batch upload: one spreadsheet + one image folder
+# Batch intake by ZIP link
 
-Today the upload page creates a single item at a time. This replaces it with a bulk flow: a partner drops one Excel item list (up to 100 rows) plus a folder of images (50–100+), the app matches images to items, and everything is created and uploaded in one pass.
+Instead of dragging 50–100 files, a partner submits a **pack**: one Excel/CSV manifest and one link to a ZIP of images. The server downloads the ZIP, unpacks it, matches images to manifest rows by folder name, and creates the items.
 
-## The flow
+## Partner flow
 
-1. **Step 1 — Item list.** Partner drops an `.xlsx`/`.csv`. Expected columns: `title` (required), `sku`, `category`, `material`, `dimensions`, `description`, and `folder` (the image folder/name key; defaults to `sku`, else `title`). Header names are matched case-insensitively with common aliases. A downloadable template is offered on the page.
-2. **Step 2 — Image folder.** Partner drops a folder (or a multi-file selection). Each image is assigned to an item by its containing folder name; loose files fall back to a filename prefix match against the folder key.
-3. **Step 3 — Match review.** A table shows every spreadsheet row with its matched image count, a thumbnail strip, and the auto-picked orthographic reference (first image, changeable by clicking another thumbnail). Problems are flagged inline: rows with zero images, images that matched no row, duplicate keys, unsupported file types. Unmatched rows can be dropped, and any leftover images can be reassigned to a row from a dropdown.
-4. **Step 4 — Submit.** Progress bar over all items and files; per-item status (uploaded / failed). On completion the partner lands on the dashboard with a summary toast. Failed items stay listed so they can be retried without redoing the whole batch.
+1. Partner prepares a ZIP where each item has its own folder (`ANK-2201/`, `LOU-118/`, ...) containing that item's photos.
+2. Partner uploads the ZIP anywhere that gives a direct download link (R2 public URL, Drive, Dropbox, WeTransfer).
+3. On a new **New pack** page the partner:
+   - uploads the manifest spreadsheet (name, category, dimensions, materials, folder name),
+   - pastes the ZIP link,
+   - submits.
+4. The pack page shows live progress: Downloading → Unpacking → Matching → Uploading to storage → Ready for review.
+5. When done, a match review table lists every row: item, number of images found, the auto-picked ortho reference (first image in the folder), and any problems (folder missing, no images, unreadable file). The partner can swap the ortho reference or re-submit a corrected link.
+6. Admin reviews and confirms items exactly as today; the ortho/top-view render job uses the chosen reference image.
 
-## Notes
+## Failure handling
 
-- Single-item upload stays available as a "Add one item" mode on the same page for partners with a one-off piece.
-- No schema change is needed: each spreadsheet row becomes an `items` record and each image an `item_images` record, exactly as today. One image per item is stored with kind `reference` (the ortho source); the rest are `source`.
-- Items are only created in the database once its own uploads succeed, so a failed batch doesn't leave empty items behind.
+- Bad/expired link, private file, non-ZIP content, or oversized archive → the pack fails with a plain-language reason and a retry field.
+- Rows with no matching folder are marked unmatched, and the rest of the pack still imports.
+- Duplicate folder names across a pack are flagged, not silently merged.
 
-## Technical details
+## What changes in the app
 
-- Parse spreadsheets client-side with SheetJS (`xlsx`); CSV handled by the same parser.
-- Folder drop uses `webkitdirectory` on the file input plus drag-and-drop `webkitGetAsEntry` traversal, so relative paths (`Chair-01/front.jpg`) are preserved for matching.
-- `src/lib/uploads.functions.ts`: raise the per-request file cap from 20 to 200 and keep ownership checks; the client signs in chunks of ~50 files per item batch.
-- Uploads run with a concurrency limit (6 parallel PUTs to R2) instead of the current sequential loop, with retry-once on network failure.
-- New files: `src/lib/batch-manifest.ts` (spreadsheet parsing, column aliasing, matching logic — unit-testable, no React), `src/components/BatchMatchTable.tsx`, `src/components/BatchDropzone.tsx`.
-- `src/routes/_authenticated/upload.tsx` becomes the batch wizard, reusing the existing metadata form for the single-item mode.
+- Existing single-item upload stays available for one-offs.
+- Dashboard gains a Packs list (pack name, item count, status, date) above the items list.
+
+## Technical notes
+
+- New tables: `packs` (partner, source ZIP URL, status, error, counts) and `pack_rows` (raw manifest row, matched folder, resulting `item_id`, per-row status), with RLS mirroring `items` (partner sees own, admin sees all) plus GRANTs.
+- Manifest parsing happens client-side with `xlsx` so the partner sees column mapping and validation errors before submitting; parsed rows are sent as JSON.
+- ZIP ingest runs in a server function: fetch the URL with a size cap and content-type check, unzip in memory with `fflate` (Worker-safe, no native deps), then PUT each image to R2 with the existing `aws4fetch` signing in `cloudflare.server.ts`. Large packs are processed in chunks, with progress written to `packs.status`/counters and polled by the UI via TanStack Query.
+- Google Drive and Dropbox share links are normalised to their direct-download form before fetching.
+- First image per folder (natural sort) is stored as `kind = 'reference'`; the rest as `kind = 'source'`. Ortho output rows are created as pending, unchanged from the current model.
