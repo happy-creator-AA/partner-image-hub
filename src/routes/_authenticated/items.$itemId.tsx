@@ -39,6 +39,7 @@ export const Route = createFileRoute("/_authenticated/items/$itemId")({
 function ItemDetail() {
   const { itemId } = Route.useParams();
   const { user } = useSession();
+  const isAdmin = useIsAdmin();
   const queryClient = useQueryClient();
 
   const item = useQuery({
