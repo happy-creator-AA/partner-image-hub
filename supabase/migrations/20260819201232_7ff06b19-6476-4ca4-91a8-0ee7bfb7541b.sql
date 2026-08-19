@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.process_ortho_queue() FROM authenticated;
