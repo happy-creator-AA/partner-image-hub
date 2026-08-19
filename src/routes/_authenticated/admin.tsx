@@ -55,6 +55,22 @@ function AdminPage() {
 
   const review = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: "approved" | "rejected" }) => {
+      if (status === "approved") {
+        // Generate the orthographic view first, then approve the item.
+        const res = await fetch("/api/generate-ortho", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token ?? ""}`,
+          },
+          body: JSON.stringify({ itemId: id }),
+        });
+        if (!res.ok) {
+          const body = (await res.json().catch(() => ({ error: "Unknown error" }))) as { error?: string };
+          throw new Error(body.error ?? `Generation failed (${res.status})`);
+        }
+      }
+
       const { error } = await supabase
         .from("items")
         .update({
