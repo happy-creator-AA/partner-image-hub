@@ -166,6 +166,33 @@ function ItemDetail() {
           </div>
         </div>
 
+        {data.status === "approved" && (data.processing === "failed" || data.processing === "awaiting_upload") && (
+          <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm">
+            <p className="font-medium text-destructive">Render not ready</p>
+            <p className="mt-1 text-muted-foreground">
+              The orthographic view could not be generated. Click below to retry.
+            </p>
+            {(user?.id === data.partner_id || isAdmin) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={() => retry.mutate()}
+                disabled={retry.isPending || data.processing === "processing"}
+              >
+                {retry.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    Generating…
+                  </>
+                ) : (
+                  "Retry generation"
+                )}
+              </Button>
+            )}
+          </div>
+        )}
+
         {data.admin_note ? (
           <div className="mt-6 rounded-lg border border-border bg-secondary p-4 text-sm">
             <p className="text-eyebrow">Admin note</p>
