@@ -71,7 +71,7 @@ export async function callOpenAIImageEdit(args: {
   const form = new FormData();
   form.append("model", args.model);
   form.append("prompt", args.prompt);
-  form.append("image", new Blob([args.imageBytes], { type: "image/png" }), args.imageName);
+  form.append("image", new Blob([Buffer.from(args.imageBytes)], { type: "image/png" }), args.imageName);
   if (args.background) form.append("background", args.background);
   if (args.quality) form.append("quality", args.quality);
   form.append("n", "1");
