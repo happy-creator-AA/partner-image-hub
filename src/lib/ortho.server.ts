@@ -45,7 +45,7 @@ export async function uploadBytesToR2(
   const put = await fetch(signed.url, {
     method: "PUT",
     headers: { "Content-Type": contentType },
-    body: bytes,
+    body: Buffer.from(bytes),
   });
 
   if (!put.ok) {
