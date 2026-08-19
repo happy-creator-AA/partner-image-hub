@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bar,
   BarChart,
@@ -9,11 +9,15 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
+import { Button } from "@/components/ui/button";
 import { ProcessingBadge, StatusBadge } from "@/components/StatusBadge";
 import { IMAGE_VARIANTS, lastMonths, monthKey, monthLabel } from "@/lib/catalog";
+import { useSession } from "@/hooks/useSession";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/items/$itemId")({
   head: () => ({
