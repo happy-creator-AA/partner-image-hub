@@ -14,16 +14,214 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      item_events: {
+        Row: {
+          created_at: string
+          event_type: Database["public"]["Enums"]["event_type"]
+          id: string
+          item_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: Database["public"]["Enums"]["event_type"]
+          id?: string
+          item_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: Database["public"]["Enums"]["event_type"]
+          id?: string
+          item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_events_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_images: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          file_name: string | null
+          height: number | null
+          id: string
+          item_id: string
+          kind: Database["public"]["Enums"]["image_kind"]
+          partner_id: string
+          public_url: string | null
+          size_bytes: number | null
+          storage_key: string
+          variant: string
+          width: number | null
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          file_name?: string | null
+          height?: number | null
+          id?: string
+          item_id: string
+          kind?: Database["public"]["Enums"]["image_kind"]
+          partner_id: string
+          public_url?: string | null
+          size_bytes?: number | null
+          storage_key: string
+          variant?: string
+          width?: number | null
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          file_name?: string | null
+          height?: number | null
+          id?: string
+          item_id?: string
+          kind?: Database["public"]["Enums"]["image_kind"]
+          partner_id?: string
+          public_url?: string | null
+          size_bytes?: number | null
+          storage_key?: string
+          variant?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_images_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      items: {
+        Row: {
+          admin_note: string | null
+          category: string
+          created_at: string
+          description: string | null
+          dimensions: string | null
+          id: string
+          material: string | null
+          partner_id: string
+          processing: Database["public"]["Enums"]["processing_status"]
+          reviewed_at: string | null
+          sku: string | null
+          status: Database["public"]["Enums"]["item_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          dimensions?: string | null
+          id?: string
+          material?: string | null
+          partner_id: string
+          processing?: Database["public"]["Enums"]["processing_status"]
+          reviewed_at?: string | null
+          sku?: string | null
+          status?: Database["public"]["Enums"]["item_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          dimensions?: string | null
+          id?: string
+          material?: string | null
+          partner_id?: string
+          processing?: Database["public"]["Enums"]["processing_status"]
+          reviewed_at?: string | null
+          sku?: string | null
+          status?: Database["public"]["Enums"]["item_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          company_name: string
+          contact_name: string
+          created_at: string
+          id: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          company_name?: string
+          contact_name?: string
+          created_at?: string
+          id: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          company_name?: string
+          contact_name?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "partner"
+      event_type: "view" | "click" | "search"
+      image_kind: "source" | "reference" | "orthographic"
+      item_status: "pending" | "approved" | "rejected"
+      processing_status:
+        | "awaiting_upload"
+        | "queued"
+        | "processing"
+        | "ready"
+        | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +348,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "partner"],
+      event_type: ["view", "click", "search"],
+      image_kind: ["source", "reference", "orthographic"],
+      item_status: ["pending", "approved", "rejected"],
+      processing_status: [
+        "awaiting_upload",
+        "queued",
+        "processing",
+        "ready",
+        "failed",
+      ],
+    },
   },
 } as const
