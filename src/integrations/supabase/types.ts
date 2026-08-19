@@ -153,71 +153,6 @@ export type Database = {
         }
         Relationships: []
       }
-      job_status: {
-        Row: {
-          last_error: string | null
-          name: string
-          paused_until: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          last_error?: string | null
-          name: string
-          paused_until?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          last_error?: string | null
-          name?: string
-          paused_until?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      processing_queue: {
-        Row: {
-          attempts: number
-          created_at: string
-          error: string | null
-          id: string
-          item_id: string
-          locked_until: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          attempts?: number
-          created_at?: string
-          error?: string | null
-          id?: string
-          item_id: string
-          locked_until?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          attempts?: number
-          created_at?: string
-          error?: string | null
-          id?: string
-          item_id?: string
-          locked_until?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "processing_queue_item_id_fkey"
-            columns: ["item_id"]
-            isOneToOne: false
-            referencedRelation: "items"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           company_name: string
@@ -278,7 +213,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      process_ortho_queue: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "partner"
