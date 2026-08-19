@@ -47,6 +47,7 @@ export const Route = createFileRoute("/api/generate-ortho")({
         const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
           auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
           global: {
+            fetch: createSupabaseFetch(supabaseKey),
             headers: { Authorization: `Bearer ${token}` },
           },
         });
