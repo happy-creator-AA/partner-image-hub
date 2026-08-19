@@ -166,7 +166,7 @@ function ItemDetail() {
           </div>
         </div>
 
-        {data.status === "approved" && (data.processing === "failed" || data.processing === "awaiting_upload") && (
+        {data.processing === "failed" && (
           <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm">
             <p className="font-medium text-destructive">Render not ready</p>
             <p className="mt-1 text-muted-foreground">
